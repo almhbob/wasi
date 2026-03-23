@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "wasi-mobile",
+    "scheme": "wasi",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -16,7 +16,11 @@
     "ios": {
       "supportsTablet": false,
       "icon": "./assets/images/icon.png",
-      "bundleIdentifier": "com.wasi.app"
+      "bundleIdentifier": "com.wasi.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "يحتاج التطبيق إلى الكاميرا لالتقاط صورة الملف الشخصي",
+        "NSPhotoLibraryUsageDescription": "يحتاج التطبيق إلى مكتبة الصور لاختيار صورة الملف الشخصي"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -25,7 +29,17 @@
         "backgroundColor": "#0D2830"
       },
       "icon": "./assets/images/icon.png",
-      "package": "com.wasi.app"
+      "package": "com.wasi.app",
+      "versionCode": 1,
+      "compileSdkVersion": 35,
+      "targetSdkVersion": 35,
+      "minSdkVersion": 24,
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES"
+      ]
     },
     "web": {
       "favicon": "./assets/images/favicon.png",
@@ -35,11 +49,18 @@
       [
         "expo-router",
         {
-          "origin": "https://replit.com/"
+          "origin": "https://wasi.app/"
         }
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "يحتاج التطبيق إلى الوصول للصور لاختيار صورة الملف الشخصي",
+          "cameraPermission": "يحتاج التطبيق إلى الكاميرا لالتقاط صورة الملف الشخصي"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
