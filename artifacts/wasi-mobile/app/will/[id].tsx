@@ -8,7 +8,8 @@ import { FONTS, RADIUS, SPACING } from "@/constants/theme";
 import { useApp } from "@/context/AppContext";
 import { Will } from "@/lib/storage";
 import { fsWills } from "@/lib/firestoreDB";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
+import { getDoc, doc } from "firebase/firestore";
 
 export default function WillDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -26,10 +27,23 @@ export default function WillDetailScreen() {
 
   useEffect(() => {
     const uid = auth.currentUser?.uid;
-    if (!uid) return;
-    fsWills.getAll(uid).then(wills => {
-      const found = wills.find(w => w.id === id);
-      if (found) { setWill(found); setTitle(found.title); setContent(found.content); }
+    if (!uid || !id) return;
+    getDoc(doc(db, "users", uid, "wills", id as string)).then(snap => {
+      if (!snap.exists()) return;
+      const d = snap.data();
+      const found: Will = {
+        id: snap.id,
+        title: d.title ?? "",
+        content: d.content ?? "",
+        status: d.status ?? "draft",
+        recipient: d.recipient,
+        witnesses: d.witnesses,
+        createdAt: d.createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
+        updatedAt: d.updatedAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
+      };
+      setWill(found);
+      setTitle(found.title);
+      setContent(found.content);
     });
   }, [id]);
 
