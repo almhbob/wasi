@@ -145,6 +145,16 @@ export default function SettingsScreen() {
             </View>
           </View>
 
+          {/* Privacy Policy */}
+          <View style={styles.section}>
+            <Pressable
+              onPress={() => router.push("/privacy-policy")}
+              style={[styles.saveBtn, { backgroundColor: theme.surfaceSecondary, borderWidth: 0.5, borderColor: theme.border }]}
+            >
+              <Text style={[styles.saveBtnText, { color: theme.text, fontFamily: FONTS.medium }]}>سياسة الخصوصية</Text>
+            </Pressable>
+          </View>
+
           {/* Sign Out */}
           <View style={styles.section}>
             <Pressable
