@@ -13,7 +13,6 @@ import { fsUser } from "@/lib/firestoreDB";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "@/constants/colors";
 import { FONTS, RADIUS } from "@/constants/theme";
-import { useApp } from "@/context/AppContext";
 import { t, isRTL } from "@/lib/i18n";
 
 const LOGO = require("../assets/images/icon.png");
@@ -27,7 +26,6 @@ const STEPS = 4;
 
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
-  useApp();
 
   const [step, setStep]            = useState(0);
   const [mode, setMode]            = useState<"signup" | "login">("signup");
