@@ -1,0 +1,27 @@
+kind = "mobile"
+previewPath = "/wasi-mobile/"
+title = "وصي - تطبيق الموبايل"
+version = "1.0.0"
+id = "artifacts/wasi-mobile"
+router = "expo-domain"
+
+[[integratedSkills]]
+name = "expo"
+version = "1.0.0"
+
+[[services]]
+ensurePreviewReachable = "/status"
+name = "expo"
+paths = [ "/wasi-mobile/" ]
+localPort = 18196
+
+[services.development]
+run = "pnpm --filter @workspace/wasi-mobile run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/wasi-mobile", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/wasi-mobile", "run", "serve" ]
+
+[services.env]
+PORT = "18196"
+BASE_PATH = "/wasi-mobile/"

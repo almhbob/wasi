@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "وصي - Wasi"
+version = "1.0.0"
+id = "artifacts/wasi-app"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22468
+
+[services.development]
+run = "pnpm --filter @workspace/wasi-app run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/wasi-app", "run", "build" ]
+publicDir = "artifacts/wasi-app/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22468"
+BASE_PATH = "/"

@@ -1,0 +1,791 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: Wasi - Islamic Digital Will & Heritage Management API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication
+  - name: wills
+    description: Will management
+  - name: guardians
+    description: Guardian management
+  - name: debts
+    description: Debt and duty tracking
+  - name: digital-assets
+    description: Digital legacy management
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/checkin:
+    post:
+      operationId: checkin
+      tags: [auth]
+      summary: Check-in to confirm user is alive (dead man switch)
+      responses:
+        "200":
+          description: Checked in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /wills:
+    get:
+      operationId: getWills
+      tags: [wills]
+      summary: Get all wills for current user
+      responses:
+        "200":
+          description: List of wills
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Will"
+    post:
+      operationId: createWill
+      tags: [wills]
+      summary: Create a new will
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWillRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Will"
+
+  /wills/{id}:
+    get:
+      operationId: getWill
+      tags: [wills]
+      summary: Get a will by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Will
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Will"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateWill
+      tags: [wills]
+      summary: Update a will
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateWillRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Will"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteWill
+      tags: [wills]
+      summary: Delete a will
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /guardians:
+    get:
+      operationId: getGuardians
+      tags: [guardians]
+      summary: Get all guardians
+      responses:
+        "200":
+          description: List of guardians
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Guardian"
+    post:
+      operationId: createGuardian
+      tags: [guardians]
+      summary: Create a guardian
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGuardianRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Guardian"
+
+  /guardians/{id}:
+    patch:
+      operationId: updateGuardian
+      tags: [guardians]
+      summary: Update a guardian
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateGuardianRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Guardian"
+    delete:
+      operationId: deleteGuardian
+      tags: [guardians]
+      summary: Delete a guardian
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /debts:
+    get:
+      operationId: getDebts
+      tags: [debts]
+      summary: Get all debts and duties
+      responses:
+        "200":
+          description: List of debts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Debt"
+    post:
+      operationId: createDebt
+      tags: [debts]
+      summary: Create a debt or duty
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDebtRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Debt"
+
+  /debts/{id}:
+    patch:
+      operationId: updateDebt
+      tags: [debts]
+      summary: Update a debt
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDebtRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Debt"
+    delete:
+      operationId: deleteDebt
+      tags: [debts]
+      summary: Delete a debt
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /digital-assets:
+    get:
+      operationId: getDigitalAssets
+      tags: [digital-assets]
+      summary: Get all digital assets
+      responses:
+        "200":
+          description: List of digital assets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DigitalAsset"
+    post:
+      operationId: createDigitalAsset
+      tags: [digital-assets]
+      summary: Create a digital asset record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDigitalAssetRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DigitalAsset"
+
+  /digital-assets/{id}:
+    patch:
+      operationId: updateDigitalAsset
+      tags: [digital-assets]
+      summary: Update a digital asset
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDigitalAssetRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DigitalAsset"
+    delete:
+      operationId: deleteDigitalAsset
+      tags: [digital-assets]
+      summary: Delete a digital asset
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    RegisterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        phone:
+          type: ["string", "null"]
+      required:
+        - name
+        - email
+        - password
+
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: ["string", "null"]
+        lastCheckinAt:
+          type: ["string", "null"]
+        checkinIntervalDays:
+          type: integer
+        createdAt:
+          type: string
+      required:
+        - id
+        - name
+        - email
+        - checkinIntervalDays
+        - createdAt
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+      required:
+        - token
+        - user
+
+    Will:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        isEncrypted:
+          type: boolean
+        status:
+          type: string
+          enum: [draft, active, delivered]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - userId
+        - title
+        - content
+        - isEncrypted
+        - status
+        - createdAt
+        - updatedAt
+
+    CreateWillRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        isEncrypted:
+          type: boolean
+      required:
+        - title
+        - content
+
+    UpdateWillRequest:
+      type: object
+      properties:
+        title:
+          type: ["string", "null"]
+        content:
+          type: ["string", "null"]
+        isEncrypted:
+          type: ["boolean", "null"]
+        status:
+          type: ["string", "null"]
+
+    Guardian:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: ["string", "null"]
+        relationship:
+          type: string
+        isConfirmed:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - userId
+        - name
+        - email
+        - relationship
+        - isConfirmed
+        - createdAt
+
+    CreateGuardianRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: ["string", "null"]
+        relationship:
+          type: string
+      required:
+        - name
+        - email
+        - relationship
+
+    UpdateGuardianRequest:
+      type: object
+      properties:
+        name:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        relationship:
+          type: ["string", "null"]
+
+    Debt:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        type:
+          type: string
+          enum: [debt, zakat, kaffarah, other]
+        description:
+          type: string
+        amount:
+          type: ["number", "null"]
+        currency:
+          type: ["string", "null"]
+        creditorName:
+          type: ["string", "null"]
+        creditorContact:
+          type: ["string", "null"]
+        isPaid:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - userId
+        - type
+        - description
+        - isPaid
+        - createdAt
+
+    CreateDebtRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [debt, zakat, kaffarah, other]
+        description:
+          type: string
+        amount:
+          type: ["number", "null"]
+        currency:
+          type: ["string", "null"]
+        creditorName:
+          type: ["string", "null"]
+        creditorContact:
+          type: ["string", "null"]
+      required:
+        - type
+        - description
+
+    UpdateDebtRequest:
+      type: object
+      properties:
+        type:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        amount:
+          type: ["number", "null"]
+        currency:
+          type: ["string", "null"]
+        creditorName:
+          type: ["string", "null"]
+        creditorContact:
+          type: ["string", "null"]
+        isPaid:
+          type: ["boolean", "null"]
+
+    DigitalAsset:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        platform:
+          type: string
+        accountIdentifier:
+          type: ["string", "null"]
+        instructions:
+          type: string
+        action:
+          type: string
+          enum: [close, transfer, inherit, donate]
+        encryptedCredentials:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - userId
+        - platform
+        - instructions
+        - action
+        - createdAt
+
+    CreateDigitalAssetRequest:
+      type: object
+      properties:
+        platform:
+          type: string
+        accountIdentifier:
+          type: ["string", "null"]
+        instructions:
+          type: string
+        action:
+          type: string
+          enum: [close, transfer, inherit, donate]
+        encryptedCredentials:
+          type: ["string", "null"]
+      required:
+        - platform
+        - instructions
+        - action
+
+    UpdateDigitalAssetRequest:
+      type: object
+      properties:
+        platform:
+          type: ["string", "null"]
+        accountIdentifier:
+          type: ["string", "null"]
+        instructions:
+          type: ["string", "null"]
+        action:
+          type: ["string", "null"]
+        encryptedCredentials:
+          type: ["string", "null"]
