@@ -37,7 +37,10 @@ export default function WillsScreen() {
   };
 
   const handleToggle = async (w: Will) => {
-    await storage.updateWill(w.id, { status: w.status === "active" ? "draft" : "active" });
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await fsWills.update(uid, w.id, { status: w.status === "active" ? "draft" : "active" });
     await refreshWills();
   };
 
