@@ -4,7 +4,7 @@ import { View, ActivityIndicator } from "react-native";
 import { Colors } from "@/constants/colors";
 
 export default function IndexRedirect() {
-  const { user, isLoading, isAuthReady } = useApp();
+  const { firebaseUser, user, isLoading, isAuthReady } = useApp();
 
   if (!isAuthReady || isLoading) {
     return (
@@ -14,8 +14,8 @@ export default function IndexRedirect() {
     );
   }
 
-  if (!user) {
-    return <Redirect href="/local-account" />;
+  if (!firebaseUser || !user) {
+    return <Redirect href="/onboarding" />;
   }
 
   return <Redirect href="/(tabs)" />;
