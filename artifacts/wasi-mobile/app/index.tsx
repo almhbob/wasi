@@ -15,7 +15,7 @@ export default function IndexRedirect() {
   }
 
   if (!firebaseUser || !user) {
-    return <Redirect href="/onboarding" />;
+    return <Redirect href="/auth-clean" />;
   }
 
   return <Redirect href="/(tabs)" />;
