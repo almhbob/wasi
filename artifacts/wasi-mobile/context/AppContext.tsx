@@ -15,6 +15,7 @@ interface AppState {
   isLoading: boolean;
   isAuthReady: boolean;
   geminiKey: string | null;
+  authError: string | null;
 }
 
 interface AppContextType extends AppState {
@@ -30,6 +31,18 @@ interface AppContextType extends AppState {
 
 const AppContext = createContext<AppContextType | null>(null);
 
+function fallbackProfile(fbUser: FirebaseUser): User {
+  const now = new Date().toISOString();
+  const email = fbUser.email ?? "";
+  return {
+    id: fbUser.uid,
+    name: fbUser.displayName || email.split("@")[0] || "مستخدم وصي",
+    email,
+    lastCheckinAt: now,
+    checkinIntervalDays: 30,
+  };
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AppState>({
     firebaseUser: null,
@@ -42,39 +55,72 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     isLoading: true,
     isAuthReady: false,
     geminiKey: null,
+    authError: null,
   });
 
   const loadUserData = useCallback(async (fbUser: FirebaseUser) => {
-    setState(prev => ({ ...prev, isLoading: true }));
-    const [profile, wills, guardians, debts, digitalAssets, geminiKey] = await Promise.all([
-      fsUser.get(fbUser.uid),
-      fsWills.getAll(fbUser.uid),
-      fsGuardians.getAll(fbUser.uid),
-      fsDebts.getAll(fbUser.uid),
-      fsAssets.getAll(fbUser.uid),
-      storage.getGeminiKey(),
-    ]);
-    const lastCheckin = profile?.lastCheckinAt ?? null;
-    setState(prev => ({
-      ...prev,
-      user: profile,
-      wills,
-      guardians,
-      debts,
-      digitalAssets,
-      lastCheckin,
-      geminiKey,
-      isLoading: false,
-    }));
+    setState(prev => ({ ...prev, firebaseUser: fbUser, isLoading: true, isAuthReady: true, authError: null }));
+
+    try {
+      let profile = await fsUser.get(fbUser.uid);
+      if (!profile) {
+        profile = fallbackProfile(fbUser);
+        await fsUser.save(fbUser.uid, {
+          name: profile.name,
+          email: profile.email,
+          phone: profile.phone,
+          lastCheckinAt: profile.lastCheckinAt,
+          checkinIntervalDays: profile.checkinIntervalDays,
+        });
+      }
+
+      const [wills, guardians, debts, digitalAssets, geminiKey] = await Promise.all([
+        fsWills.getAll(fbUser.uid).catch(() => []),
+        fsGuardians.getAll(fbUser.uid).catch(() => []),
+        fsDebts.getAll(fbUser.uid).catch(() => []),
+        fsAssets.getAll(fbUser.uid).catch(() => []),
+        storage.getGeminiKey().catch(() => null),
+      ]);
+
+      setState(prev => ({
+        ...prev,
+        firebaseUser: fbUser,
+        user: profile,
+        wills,
+        guardians,
+        debts,
+        digitalAssets,
+        lastCheckin: profile?.lastCheckinAt ?? null,
+        geminiKey,
+        isLoading: false,
+        isAuthReady: true,
+        authError: null,
+      }));
+    } catch (error) {
+      console.warn("Wasi auth data load failed", error);
+      const profile = fallbackProfile(fbUser);
+      setState(prev => ({
+        ...prev,
+        firebaseUser: fbUser,
+        user: profile,
+        wills: [],
+        guardians: [],
+        debts: [],
+        digitalAssets: [],
+        lastCheckin: profile.lastCheckinAt,
+        isLoading: false,
+        isAuthReady: true,
+        authError: "تعذر تحميل بعض البيانات، ويمكنك المتابعة وسيتم التحديث لاحقاً.",
+      }));
+    }
   }, []);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (fbUser) => {
       if (fbUser) {
-        setState(prev => ({ ...prev, firebaseUser: fbUser, isAuthReady: true }));
         await loadUserData(fbUser);
       } else {
-        const geminiKey = await storage.getGeminiKey();
+        const geminiKey = await storage.getGeminiKey().catch(() => null);
         setState({
           firebaseUser: null,
           user: null,
@@ -86,6 +132,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           isLoading: false,
           isAuthReady: true,
           geminiKey,
+          authError: null,
         });
       }
     });
@@ -131,28 +178,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const refreshWills = async () => {
     const fbUser = auth.currentUser;
     if (!fbUser) return;
-    const wills = await fsWills.getAll(fbUser.uid);
+    const wills = await fsWills.getAll(fbUser.uid).catch(() => []);
     setState(prev => ({ ...prev, wills }));
   };
 
   const refreshGuardians = async () => {
     const fbUser = auth.currentUser;
     if (!fbUser) return;
-    const guardians = await fsGuardians.getAll(fbUser.uid);
+    const guardians = await fsGuardians.getAll(fbUser.uid).catch(() => []);
     setState(prev => ({ ...prev, guardians }));
   };
 
   const refreshDebts = async () => {
     const fbUser = auth.currentUser;
     if (!fbUser) return;
-    const debts = await fsDebts.getAll(fbUser.uid);
+    const debts = await fsDebts.getAll(fbUser.uid).catch(() => []);
     setState(prev => ({ ...prev, debts }));
   };
 
   const refreshAssets = async () => {
     const fbUser = auth.currentUser;
     if (!fbUser) return;
-    const digitalAssets = await fsAssets.getAll(fbUser.uid);
+    const digitalAssets = await fsAssets.getAll(fbUser.uid).catch(() => []);
     setState(prev => ({ ...prev, digitalAssets }));
   };
 
