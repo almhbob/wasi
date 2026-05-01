@@ -2,7 +2,7 @@
   "expo": {
     "name": "وصي - Wasi",
     "slug": "wasi-mobile",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "wasi",
@@ -30,7 +30,7 @@
       },
       "icon": "./assets/images/icon.png",
       "package": "com.wasi.app",
-      "versionCode": 1,
+      "versionCode": 3,
       "compileSdkVersion": 35,
       "targetSdkVersion": 35,
       "minSdkVersion": 24,
